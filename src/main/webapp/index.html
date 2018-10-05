@@ -15,12 +15,8 @@
 <body>
   <div class="container-fluid">
     <div class="row text-white bg-dodger-blue">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col py-3">
-            <h4 class="m-0 text-white">Тестовый магазин</h4>
-          </div>
-        </div>
+      <div class="col py-3">
+        <h4 class="m-0 text-white">Тестовый магазин</h4>
       </div>
     </div>
   </div>
@@ -41,6 +37,9 @@
             </div>
           </div>
         </div>
+        <div class="card-footer">
+          <button id="add-button" type="button" class="btn btn-outline-primary form-control">Добавить</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-body">
@@ -56,17 +55,39 @@
             </div>
           </div>
         </div>
+        <div class="card-footer">
+          <button id="add-button" type="button" class="btn btn-outline-primary form-control">Добавить</button>
+        </div>
       </div>
     </div>
     <div class="row mt-4">
-      <div class="col-6">
+      <div class="col-4 offset-8">
         <button id="save-button" type="button" class="btn btn-dodger-blue form-control">Сохранить</button>
-      </div>
-      <div class="col-6">
-        <button id="reload-button" type="button" class="btn btn-dodger-blue form-control">Обновить</button>
       </div>
     </div>
   </form>
+
+  <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">Подтверждение удаления</h4>
+        </div>
+
+        <div class="modal-body">
+          <p>Вы действительно хотите удалить одежду?</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+          <button id="modal-btn-yes" class="btn btn-danger btn-ok">Удалить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   </main>
 </body>
 <script type="text/javascript">
@@ -84,26 +105,6 @@
 	var sizes = new Map();
 	var stores = new Map();
 
-	var serverStoreData = {};
-	var serverStockData = {};
-
-	function loadingAjax() {
-	      var divIdHtml = $("#"+div_id).html();
-	      $.ajax({
-	           type: "POST",
-	           url: "script.php",
-	           data: "name=John&id=28",
-	           beforeSend: function() {
-	              $("#loading-image").show();
-	           },
-	           success: function(msg) {
-	              $("#"+div_id).html(divIdHtml + msg);
-	              $("#loading-image").hide();
-	           }
-	      });
-	}
-	 
-	
 	function fillTypeSelects(id) {
 		var str = "";
 	    
@@ -176,8 +177,29 @@
     	storeInput.val(newStoreId);
 		$(moveTo).append(row);
 	}
-	
-	function loadStore(storeId, dataVar, titleId, listId) {
+
+	function removeClothes(id) {
+		$.ajax({
+          type: "DELETE",
+          url: "service/main/clothes/remove/" + id,
+		});
+	}
+	  
+	function handleRemoveButton(btn) {
+		var row = $(btn).parent().parent();
+		var clothesId = parseInt(row.find('input[name=clothes-id]').val());
+        var confirmDelete = $("#confirm-delete");
+        confirmDelete.modal('show');
+
+        $("#modal-btn-yes").click(function() {
+          row.remove();
+          row.find('input[name="del-mark"]').val("true");
+          removeClothes(clothesId);
+          confirmDelete.modal('hide');
+        });
+    };
+  
+	function loadStore(storeId, titleId, listId) {
 		$.ajax({
 			url: "service/main/stores/" + storeId,
             type: "get",
@@ -190,8 +212,7 @@
             url: "service/main/clothes/" + storeId,
             type: "get",
             success: function(data) {
-            	dataVar = data;
-                
+               
                 $(titleId).text(data.name);
                 $.each(data.clothes, function(i, item) {
                 	var html = [];
@@ -234,10 +255,7 @@
 								'<input name="desc" type="text" class="form-control" value="' + item.shortDescription + '">',
 							'</div>',
 							'<div class="col-2 py-1">',
-								'<input class="form-check-input" title="Пометить на удаление" name="del-mark" type="checkbox" onclick="toggleRow(this)">',
-								'<label class="form-check-label">',
-							    'DEL',
-								'</label>',
+								'<button type="button" title="Удалить" class="remove-button btn btn-primary mr-1" onclick="handleRemoveButton(this)">DEL</button>',
 								'<button type="button" title="Переместить" class="move-button btn btn-primary" onclick="handleMoveButton(this)">REM</button>',
 							'</div>',
 						'</div>'
@@ -245,7 +263,9 @@
                     $(listId).append(html.join(""));
             	});
         	}
-		})
+		});
+
+	    
 	};
 	
 	$(document).ready(function() {
@@ -293,8 +313,8 @@
 			}
 		});
 
-		loadStore(2, serverStoreData, '#shop-title', $shopClothes);
-		loadStore(1, serverStockData, '#stock-title', $stockClothes);
+		loadStore(2, '#shop-title', $shopClothes);
+		loadStore(1, '#stock-title', $stockClothes);
 	});
 
 	function save() {
@@ -306,7 +326,7 @@
 			var colorId = parseInt(item.find('select[name=color]').val()) || null
 			var storeId = parseInt(item.find('input[name=store-id]').val()) || null;
 			var description = item.find('input[name=desc]').val();
-			var delMark = item.find('input[name=del-mark]').is(':checked');
+			var delMark = item.find('input[name=del-mark]').val();
 			
 			var size = sizes.get(sizeId) || null;
 			var type = types.get(typeId) || null;

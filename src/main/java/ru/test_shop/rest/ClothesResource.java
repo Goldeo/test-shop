@@ -4,6 +4,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.json.JsonObject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -11,6 +12,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import ru.test_shop.api.ClothesService;
 import ru.test_shop.exceptions.ArgumentException;
 import ru.test_shop.model.entity.Clothes;
@@ -138,6 +140,18 @@ public class ClothesResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveClothes(List<Clothes> clothes) {
     clothesService.saveClothes(clothes);
+    return Response.ok().build();
+  }
+
+  @DELETE
+  @Path(value = "/clothes/remove/{id}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response removeClothes(@PathParam(value = "id") Integer id) {
+    if (id == null) {
+      return Response.status(Status.BAD_REQUEST).build();
+    }
+
+    clothesService.removeClothes(id);
     return Response.ok().build();
   }
 }
