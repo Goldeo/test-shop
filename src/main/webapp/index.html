@@ -21,7 +21,7 @@
     </div>
   </div>
   <main>
-  <form id="main-form" action="service/main/clothes" method="post">
+  <form id="main-form">
     <div class="card-group">
       <div class="card">
         <div class="card-body">
@@ -32,8 +32,8 @@
               <div class="col-2 py-2">Тип</div>
               <div class="col-2 py-2">Размер</div>
               <div class="col-2 py-2">Цвет</div>
-              <div class="col-3 py-2">Описание</div>
-              <div class="col-2 py-2">Действия</div>
+              <div class="col-2 py-2">Описание</div>
+              <div class="col-3 py-2">Действия</div>
             </div>
           </div>
         </div>
@@ -178,6 +178,44 @@
 		$(moveTo).append(row);
 	}
 
+    function getClothes(row) {
+		var id = parseInt(row.find('input[name=clothes-id]').val()) || null;
+		var sizeId = parseInt(row.find('select[name=size]').val()) || null;
+		var typeId = parseInt(row.find('select[name=type]').val()) || null;
+		var colorId = parseInt(row.find('select[name=color]').val()) || null
+		var storeId = parseInt(row.find('input[name=store-id]').val()) || null;
+		var description = row.find('input[name=desc]').val();
+		var delMark = row.find('input[name=del-mark]').val();
+		
+		var size = sizes.get(sizeId) || null;
+		var type = types.get(typeId) || null;
+		var color = colors.get(colorId) || null;
+		var store = stores.get(storeId) || null;
+		
+		return {
+	        id: id,
+	        size: size,
+	        type: type,
+	        color: color,
+	        store: store,
+	        shortDescription: description,
+	        deleteMark: delMark
+	    };
+    }
+	  
+    function handleSaveButton(el) {
+    	var row = $(el).closest('.data-row');
+    	var cl = getClothes(row);
+	    console.log(JSON.stringify(cl));
+    	$.ajax({
+            type: "PUT",
+            url: "service/main/clothes/save",
+            data: JSON.stringify(cl),
+            contentType: "application/json",
+			dataType: "json"
+  		});
+    };
+	  
 	function removeClothes(id) {
 		$.ajax({
           type: "DELETE",
@@ -251,12 +289,21 @@
 									selColor,
 								'</select>',
 							'</div>',
+							'<div class="col-2 py-1">',
 							'<div class="col-3 py-1">',
 								'<input name="desc" type="text" class="form-control" value="' + item.shortDescription + '">',
 							'</div>',
-							'<div class="col-2 py-1">',
-								'<button type="button" title="Удалить" class="remove-button btn btn-primary mr-1" onclick="handleRemoveButton(this)">DEL</button>',
-								'<button type="button" title="Переместить" class="move-button btn btn-primary" onclick="handleMoveButton(this)">REM</button>',
+							'<div class="col-3 py-1">',
+    							'<div class="btn-group">',
+    							  '<button type="button" class="btn btn-primary" onclick="handleSaveButton(this)">Сохранить</button>',
+    							  '<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">',
+    							    '<span class="caret"></span>',
+    							  '</button>',
+    							  '<ul class="dropdown-menu" role="menu">',
+    							    '<li><a href="#" onclick="handleRemoveButton(this)">Удалить</a></li>',
+    							    '<li><a href="#" onclick="handleMoveButton(this)">Переместить</a></li>',
+    							  '</ul>',
+    							'</div>',
 							'</div>',
 						'</div>'
                			)
@@ -319,34 +366,13 @@
 
 	function save() {
 		var ch = $('.data-row').map(function() {
-			var item = $(this);
-			var id = parseInt(item.find('input[name=clothes-id]').val()) || null;
-			var sizeId = parseInt(item.find('select[name=size]').val()) || null;
-			var typeId = parseInt(item.find('select[name=type]').val()) || null;
-			var colorId = parseInt(item.find('select[name=color]').val()) || null
-			var storeId = parseInt(item.find('input[name=store-id]').val()) || null;
-			var description = item.find('input[name=desc]').val();
-			var delMark = item.find('input[name=del-mark]').val();
-			
-			var size = sizes.get(sizeId) || null;
-			var type = types.get(typeId) || null;
-			var color = colors.get(colorId) || null;
-			var store = stores.get(storeId) || null;
-			
-			return {
-		        id: id,
-		        size: size,
-		        type: type,
-		        color: color,
-		        store: store,
-		        shortDescription: description,
-		        deleteMark: delMark
-		    };
+			var row = $(this);
+			return getClothes(row);
 		}).get();
-        
+
 		$.ajax({
-			type: "POST",
-			url: "service/main/clothes/save",
+			type: "PUT",
+			url: "service/main/clothes/saveAll",
 			data: JSON.stringify(ch),
 			contentType: "application/json",
 			dataType: "json"
