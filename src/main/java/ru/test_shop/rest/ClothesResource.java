@@ -135,10 +135,21 @@ public class ClothesResource {
   }
 
   @POST
+
+  @PUT
   @Path(value = "/clothes/save")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response saveClothes(List<Clothes> clothes) {
+  public Response saveClothes(Clothes clothes) {
+    clothesService.saveClothes(clothes);
+    return Response.ok().build();
+  }
+
+  @PUT
+  @Path(value = "/clothes/saveAll")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response saveAllClothes(List<Clothes> clothes) {
     clothesService.saveClothes(clothes);
     return Response.ok().build();
   }

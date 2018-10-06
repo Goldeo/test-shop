@@ -23,6 +23,8 @@ public interface ClothesService {
 
   public void removeClothes(int id);
 
+  public void saveClothes(Clothes clothes);
+
   public void saveClothes(List<Clothes> clothes);
 
   public RClothesColor getClothesColorById(int id);

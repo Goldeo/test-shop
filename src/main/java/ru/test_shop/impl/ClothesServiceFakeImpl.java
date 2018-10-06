@@ -61,20 +61,27 @@ public class ClothesServiceFakeImpl implements ClothesService {
   }
 
   @Override
+  public void saveClothes(Clothes clothes) {
+    if (clothes.isDeleteMark() == true) {
+      removeClothes(clothes.getId());
+    }
+    Clothes savedCl = repo.getClothesList().stream().filter(c -> c.getId() == clothes.getId())
+        .findAny().orElse(null);
+    if (savedCl != null) {
+      savedCl.setColor(clothes.getColor());
+      savedCl.setType(clothes.getType());
+      savedCl.setSize(clothes.getSize());
+      savedCl.setStore(clothes.getStore());
+      savedCl.setValue(clothes.getValue());
+      savedCl.setShortDescription(clothes.getShortDescription());
+    }
+  }
+
+  @Override
   public void saveClothes(List<Clothes> clothes) {
     for (Clothes cl : clothes) {
-      if (cl.isDeleteMark() == true) {
-        removeClothes(cl.getId());
-      }
-      Clothes savedCl = repo.getClothesList().stream().filter(c -> c.getId() == cl.getId()).findAny().orElse(null);
-      if (savedCl != null) {
-        savedCl.setColor(cl.getColor());
-        savedCl.setType(cl.getType());
-        savedCl.setSize(cl.getSize());
-        savedCl.setStore(cl.getStore());
-        savedCl.setValue(cl.getValue());
-        savedCl.setShortDescription(cl.getShortDescription());
-      }
+      saveClothes(cl);
+
     }
   }
 
