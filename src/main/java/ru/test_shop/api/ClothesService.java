@@ -21,6 +21,11 @@ public interface ClothesService {
   public void addClothes(double value, String shortDescription, ClothesStore store,
       RClothesSize size, RClothesType type, RClothesColor color);
 
+  public void addClothes(double value, String shortDescription, int storeId, int sizeId, int typeId,
+      int colorId);
+
+  public void addClothes(Clothes clothes);
+
   public void removeClothes(int id);
 
   public void saveClothes(Clothes clothes);

@@ -47,12 +47,27 @@ public class ClothesServiceFakeImpl implements ClothesService {
   }
 
   @Override
+  public void addClothes(Clothes clothes) {
+    clothes.setId(repo.getClothesList().size() + 1);
+    repo.getClothesList().add(clothes);
+  }
+
+  @Override
   public void addClothes(double value, String shortDescription, ClothesStore store,
       RClothesSize size, RClothesType type, RClothesColor color) {
-    // TODO
-    int id = 6;
-    Clothes newClothes = new Clothes(id, value, shortDescription, store, size, type, color);
+    int newId = repo.getClothesList().size() + 1;
+    Clothes newClothes = new Clothes(newId, value, shortDescription, store, size, type, color);
     repo.getClothesList().add(newClothes);
+  }
+
+  @Override
+  public void addClothes(double value, String shortDescription, int storeId, int sizeId, int typeId,
+      int colorId) {
+    ClothesStore store = getClothesStoreById(storeId);
+    RClothesSize size = getClothesSizeById(sizeId);
+    RClothesType type = getClothesTypeById(typeId);
+    RClothesColor color = getClothesColorById(colorId);
+    addClothes(value, shortDescription, store, size, type, color);
   }
 
   @Override
