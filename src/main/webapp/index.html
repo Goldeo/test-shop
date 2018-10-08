@@ -73,15 +73,11 @@
         </div>
       </div>
     </div>
-    <!--  <div class="row mt-4">
-      <div class="col-4 offset-4">
-        <button id="add-button" type="button" data-toggle="modal" data-target="#add-dialog"
-          class="btn btn-dodger-blue form-control">Добавить</button>
+    <div class="row mt-4">
+      <div class="col-4 offset-8">
+        <button id="save-all-button" type="button" onclick="handleSaveAllButton()" class="btn btn-dodger-blue form-control">Сохранить все</button>
       </div>
-      <div class="col-4">
-        <button id="save-button" type="button" class="btn btn-dodger-blue form-control">Сохранить</button>
-      </div>
-    </div>-->
+    </div>
   </form>
 
   <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-hidden="true">
@@ -318,7 +314,6 @@
 		var colorId = parseInt(row.find('[name=color-id]').val()) || null
 		var storeId = parseInt(row.find('[name=store-id]').val()) || null;
 		var description = row.find('[name=desc]').val();
-		var delMark = row.find('[name=del-mark]').val();
 		
 		var size = sizes.get(sizeId) || null;
 		var type = types.get(typeId) || null;
@@ -337,11 +332,15 @@
     }
 
     function markRowAsChanged(row) {
-    	$(row).addClass("bg-warning");
+    	var r = $(row);
+    	r.addClass("bg-warning");
+        r.find('input[name=changed]').val('1');
     }
 
     function markRowAsUnchanged(row) {
-    	$(row).removeClass("bg-warning");
+        var r = $(row);
+        r.removeClass("bg-warning");
+        r.find('input[name=changed]').val('0');
     }
 
     function handleOnChangeData(el) {
@@ -387,7 +386,6 @@
 
         confirmDelete.find(".modal-btn-yes").click(function() {
           row.remove();
-          row.find('input[name="del-mark"]').val("true");
           removeClothes(clothesId);
           confirmDelete.modal('hide');
         });
@@ -404,6 +402,7 @@
 			'<div class="row data-row border-secondary border-bottom">',
 				'<input type="hidden" name="clothes-id" value="' + id + '"/>',
 				'<input type="hidden" name="store-id" value="' + storeId + '"/>',
+				'<input type="hidden" name="changed" value="0"/>',
 				'<div class="col-1 py-1">',
 				   id,
 				'</div>',
@@ -534,9 +533,11 @@
         loadSelects();
 	});
 
-	/**function save() {
-		var ch = $('.data-row').map(function() {
-			var row = $(this);
+	function saveAll() {
+        rows = [];
+		var ch = $('.data-row').find('input[name=changed][value="1"]').map(function() {
+			var row = $(this).closest('.data-row');
+            rows.push(row);
 			return getClothes(row);
 		}).get();
         
@@ -545,16 +546,17 @@
 			url: "service/main/clothes/saveAll",
 			data: JSON.stringify(ch),
 			contentType: "application/json",
-			dataType: "json"
+            success: function() {
+                $.each(rows, function(i, item) {
+                	markRowAsUnchanged(item);
+                });
+            	$.notify("Вся одежда сохранена!", "success");
+            }
 		});
 	}
-	
-	$('#save-button').click(function() {
-		save();
-	});
-	
-	$("#reload-button").click(function() {
-		reload();
-	});**/
+
+    function handleSaveAllButton() {
+        saveAll();
+    }
 </script>
 </html>
