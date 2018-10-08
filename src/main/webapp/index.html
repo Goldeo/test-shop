@@ -10,6 +10,7 @@
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui.js"></script>
 <script type="text/javascript" src="js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript" src="js/notify.min.js"></script>
 
 </head>
 <body>
@@ -40,7 +41,9 @@
         <div class="card-footer">
           <div class="row">
             <div class="col-4 offset-8">
-              <button id="add-button" type="button" class="btn btn-outline-primary form-control">Добавить</button>
+              <button id="add-to-store-button" type="button" data-toggle="modal"
+                data-target="#add-dialog" data-store_id="2"
+                class="btn btn-outline-primary form-control">Добавить</button>
             </div>
           </div>
         </div>
@@ -62,21 +65,23 @@
         <div class="card-footer">
           <div class="row">
             <div class="col-4 offset-8">
-              <button id="add-button" type="button" class="btn btn-outline-primary form-control">Добавить</button>
+              <button id="add-to-stock-button" type="button" data-toggle="modal"
+                data-target="#add-dialog" data-store_id="1"
+                class="btn btn-outline-primary form-control">Добавить</button>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="row mt-4">
+    <!--  <div class="row mt-4">
       <div class="col-4 offset-4">
-        <button id="save-button" type="button" data-toggle="modal" data-target="#add-dialog"
+        <button id="add-button" type="button" data-toggle="modal" data-target="#add-dialog"
           class="btn btn-dodger-blue form-control">Добавить</button>
       </div>
       <div class="col-4">
         <button id="save-button" type="button" class="btn btn-dodger-blue form-control">Сохранить</button>
       </div>
-    </div>
+    </div>-->
   </form>
 
   <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-hidden="true">
@@ -113,7 +118,7 @@
           <div class="row">
             <div class="col-4 py-1">Хранилище:</div>
             <div class="col-8 py-1">
-              <select class="store-select custom-select" name="store-id">
+              <select class="store-select custom-select" disabled name="store-id">
               </select>
             </div>
           </div>
@@ -146,6 +151,7 @@
           </div>
         </div>
 
+        <div class="alert alert-danger mx-3" role="alert"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
           <button type="button" class="btn btn-success btn-add" onclick="handleAddButton(this)">Добавить</button>
@@ -172,7 +178,7 @@
 	var stores = new Map();
 
 	function fillOptions(id, map, emptyOptionTitle, valField, nameField) {
-		var str = '<option disabled' + (id ? '' : ' selected') + '>' + emptyOptionTitle + '</option>';
+		var str = '<option disabled' + (id ? '' : ' selected') + ' value="">' + emptyOptionTitle + '</option>';
 	    
 		map.forEach((el) => {
 			var selected = "";
@@ -211,23 +217,79 @@
 
                 var store = storeId == 2 ? $shopClothes : $stockClothes;
                 store.append(rowStr);
+                $.notify("Новая одежда добавлена (id: " + id + ")", "success");
             }
       });
     }
-	  
+
+    $('#add-dialog').on('show.bs.modal', function(e) {
+       resetAddDialogElements();
+
+       var storeId = parseInt($(e.relatedTarget).data('store_id'));
+       storeSelect = $(this).find('select[name=store-id]')
+       storeSelect.val(storeId);
+    });
+
+    function resetAddDialogElements() {
+    	var addDialog = $("#add-dialog");
+    	var storeSelect = addDialog.find('select[name=store-id]');
+        var typeSelect = addDialog.find('select[name=type-id]');
+        var sizeSelect = addDialog.find('select[name=size-id]');
+        var colorSelect = addDialog.find('select[name=color-id]');
+        var descSelect = addDialog.find('input[name=desc]');
+        
+        var alert = addDialog.find('.alert-danger');
+        alert.empty();
+        alert.hide();
+
+        addDialog.modal('hide');
+        storeSelect.val("");
+        typeSelect.val("");
+        sizeSelect.val("");
+        colorSelect.val("");
+        descSelect.val("");
+    }
+	
     function handleAddButton(el) {
     	var addDialog = $("#add-dialog");
         var addButton = addDialog.find('.btn-add');
-        var cl = getClothes(addDialog);
 
-        addDialog.modal('hide');
-        addClothes(cl);
+        var storeSelect = addDialog.find('select[name=store-id]');
+        var typeSelect = addDialog.find('select[name=type-id]');
+        var sizeSelect = addDialog.find('select[name=size-id]');
+        var colorSelect = addDialog.find('select[name=color-id]');
+        var descSelect = addDialog.find('input[name=desc]');
 
-        addDialog.find('select[name=store-id]').val("");
-        addDialog.find('select[name=type-id]').val("");
-        addDialog.find('select[name=size-id]').val("");
-        addDialog.find('select[name=color-id]').val("");
-        addDialog.find('input[name=desc]').val("");
+        var alert = addDialog.find('.alert-danger');
+        
+        var errCount = 0;
+        if (!storeSelect.val()) {
+          alert.append('<div><strong>Внимание!</strong> Хранилище не указано!</div>');
+          storeSelect.focus();
+          errCount++;
+        }
+        if (!typeSelect.val()) {
+          alert.append('<div><strong>Внимание!</strong> Тип не указан!</div>');
+          typeSelect.focus();
+          errCount++;
+        }
+        if (!sizeSelect.val()) {
+          alert.append('<div><strong>Внимание!</strong> Размер не указан!</div>');
+          sizeSelect.focus();
+          errCount++;
+        }
+        if (!colorSelect.val()) {
+          alert.append('<div><strong>Внимание!</strong> Цвет не указан!</div>');
+          colorSelect.focus();
+          errCount++;
+        }
+        if (errCount == 0) {
+          addDialog.modal('hide');
+          var cl = getClothes(addDialog);
+          addClothes(cl);
+        } else {
+          alert.show();
+        }
     }
 	  
 	function handleMoveButton(el) {
@@ -252,6 +314,9 @@
 
     	storeInput.val(newStoreId);
 		$(moveTo).append(row);
+        var cl = getClothes(row);
+	    
+    	saveClothes(cl);
 	}
 
     function getClothes(row) {
@@ -278,31 +343,33 @@
 	        deleteMark: delMark
 	    };
     }
+
+    function saveClothes(cl) {
+      $.ajax({
+            type: "PUT",
+            url: "service/main/clothes/save",
+            data: JSON.stringify(cl),
+            contentType: "application/json",
+            success: function(data) {
+              $.notify("Одежда сохранена (id: " + cl.id + ")", "success");
+            }
+      });
+    }
 	  
     function handleSaveButton(el) {
     	var row = $(el).closest('.data-row');
     	var cl = getClothes(row);
 	    
-    	$.ajax({
-            type: "PUT",
-            url: "service/main/clothes/save",
-            data: JSON.stringify(cl),
-            contentType: "application/json",
-			dataType: "json"
-  		});
+    	saveClothes(cl);
     };
 	  
 	function removeClothes(id) {
 		$.ajax({
           type: "DELETE",
           url: "service/main/clothes/remove/" + id,
-		});
-	}
-
-	function saveClothes(cl) {
-		$.ajax({
-          type: "DELETE",
-          url: "service/main/clothes/remove/" + id,
+          success: function(data) {
+        	$.notify("Одежда удалена (id: " + id + ")", "success");
+          }
 		});
 	}
 	  
@@ -359,8 +426,8 @@
 					    '<span class="caret"></span>',
 					  '</button>',
 					  '<ul class="dropdown-menu" role="menu">',
-					    '<li><a href="#" onclick="handleRemoveButton(this)">Удалить</a></li>',
-					    '<li><a href="#" onclick="handleMoveButton(this)">Переместить</a></li>',
+					    '<li><a href="#" class="ml-2" onclick="handleMoveButton(this)">Переместить</a></li>',
+					    '<li><a href="#" class="ml-2" onclick="handleRemoveButton(this)">Удалить</a></li>',
 					  '</ul>',
 					'</div>',
 				'</div>',
@@ -407,7 +474,7 @@
         var addDialog = $('#add-dialog');
         addDialog.find('.store-select').html(fillOptions(null, stores, '--Хранилище--', 'id', 'name'));
     	addDialog.find('.type-select').html(fillOptions(null, types, '--Тип--', 'id', 'name'));
-    	addDialog.find('.size-select').html(fillOptions(null, sizes, '--Резмер--', 'id', 'name'));
+    	addDialog.find('.size-select').html(fillOptions(null, sizes, '--Размер--', 'id', 'name'));
     	addDialog.find('.color-select').html(fillOptions(null, colors, '--Цвет--', 'id', 'name'));
     }
 	
@@ -461,7 +528,7 @@
         loadSelects();
 	});
 
-	function save() {
+	/**function save() {
 		var ch = $('.data-row').map(function() {
 			var row = $(this);
 			return getClothes(row);
@@ -482,6 +549,6 @@
 	
 	$("#reload-button").click(function() {
 		reload();
-	});
+	});**/
 </script>
 </html>
