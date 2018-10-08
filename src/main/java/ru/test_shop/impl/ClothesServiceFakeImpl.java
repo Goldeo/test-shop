@@ -96,7 +96,6 @@ public class ClothesServiceFakeImpl implements ClothesService {
   public void saveClothes(List<Clothes> clothes) {
     for (Clothes cl : clothes) {
       saveClothes(cl);
-
     }
   }
 
