@@ -189,15 +189,6 @@
 		});
         return str;
 	}
-	
-	function toggleRow(cb) {
-		var row = $(cb).closest('.data-row');
-		if (cb.checked) {
-			row.addClass('bg-warning');
-		} else {
-			row.removeClass('bg-warning');
-		}
-	}
 
     function addClothes(cl) {
       $.ajax({
@@ -313,10 +304,11 @@
     	}
 
     	storeInput.val(newStoreId);
+    	markRowAsChanged(row);
 		$(moveTo).append(row);
         var cl = getClothes(row);
 	    
-    	saveClothes(cl);
+    	//saveClothes(cl);
 	}
 
     function getClothes(row) {
@@ -344,6 +336,19 @@
 	    };
     }
 
+    function markRowAsChanged(row) {
+    	$(row).addClass("bg-warning");
+    }
+
+    function markRowAsUnchanged(row) {
+    	$(row).removeClass("bg-warning");
+    }
+
+    function handleOnChangeData(el) {
+        var row = $(el).closest('.data-row');
+    	markRowAsChanged(row);
+    }
+    
     function saveClothes(cl) {
       $.ajax({
             type: "PUT",
@@ -359,7 +364,8 @@
     function handleSaveButton(el) {
     	var row = $(el).closest('.data-row');
     	var cl = getClothes(row);
-	    
+
+    	markRowAsUnchanged(row);
     	saveClothes(cl);
     };
 	  
@@ -402,22 +408,22 @@
 				   id,
 				'</div>',
 				'<div class="col-2 py-1">',
-					'<select class="type-select custom-select" name="type-id" value="' + typeId + '">',
+					'<select class="type-select custom-select" onchange="handleOnChangeData(this)" name="type-id" value="' + typeId + '">',
 						selType,
 					'</select>',
 				'</div>',
 				'<div class="col-2 py-1">',
-					'<select class="size-select custom-select" name="size-id" value="' + sizeId + '">',
+					'<select class="size-select custom-select" onchange="handleOnChangeData(this)" name="size-id" value="' + sizeId + '">',
 						selSize,
 					'</select>',
 				'</div>',
 				'<div class="col-2 py-1">',
-					'<select class="color-select custom-select" name="color-id" value="' + colorId + '">',
+					'<select class="color-select custom-select" onchange="handleOnChangeData(this)" name="color-id" value="' + colorId + '">',
 						selColor,
 					'</select>',
 				'</div>',
 				'<div class="col-2 py-1">',
-					'<input name="desc" type="text" class="form-control" value="' + desc + '">',
+					'<input name="desc" type="text" class="form-control" onchange="handleOnChangeData(this)" value="' + desc + '">',
 				'</div>',
 				'<div class="col-3 py-1">',
 					'<div class="btn-group">',
